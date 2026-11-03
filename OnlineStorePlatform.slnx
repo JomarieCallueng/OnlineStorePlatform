@@ -1,0 +1,19 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Gateway/">
+    <Project Path="src/Gateway/ApiGateway/ApiGateway.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/">
+    <Project Path="src/Services/Catalog.API/Catalog.API.csproj" />
+    <Project Path="src/Services/Inventory.API/Inventory.API.csproj" />
+    <Project Path="src/Services/Order.API/Order.API.csproj" />
+    <Project Path="src/Services/Payment.API/Payment.API.csproj" />
+  </Folder>
+  <Folder Name="/src/Shared/">
+    <Project Path="src/Shared/Store.Shared.Common/Store.Shared.Common.csproj" />
+    <Project Path="src/Shared/Store.Shared.Events/Store.Shared.Events.csproj" />
+  </Folder>
+  <Folder Name="/src/Storefront/">
+    <Project Path="src/Storefront/Storefront.UI/Storefront.UI.csproj" />
+  </Folder>
+</Solution>

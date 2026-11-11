@@ -1,0 +1,77 @@
+openapi: 3.0.3
+info:
+  title: Catalog API
+  version: "1.0"
+  description: Product catalogue. Browsing is public; create/update require the Admin role.
+servers:
+  - url: /catalog/v1
+paths:
+  /products:
+    get:
+      summary: List products (public)
+      parameters:
+        - name: includeInactive
+          in: query
+          schema: { type: boolean, default: false }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/ProductDto' } }
+    post:
+      summary: Create a product (Admin)
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/CreateProductRequest' } } }
+      responses:
+        '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/ProductDto' } } } }
+        '401': { description: Unauthorized }
+        '403': { description: Forbidden (not an Admin) }
+  /products/{id}:
+    get:
+      summary: Get a product (public)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ProductDto' } } } }
+        '404': { description: Not found }
+    put:
+      summary: Update a product (Admin)
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/UpdateProductRequest' } } }
+      responses:
+        '200': { description: Updated, content: { application/json: { schema: { $ref: '#/components/schemas/ProductDto' } } } }
+        '401': { description: Unauthorized }
+        '403': { description: Forbidden }
+        '404': { description: Not found }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  schemas:
+    ProductDto:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        price: { type: number, format: double }
+        isActive: { type: boolean }
+    CreateProductRequest:
+      type: object
+      required: [name, price]
+      properties:
+        name: { type: string }
+        price: { type: number, format: double }
+        isActive: { type: boolean, default: true }
+    UpdateProductRequest:
+      type: object
+      required: [name, price, isActive]
+      properties:
+        name: { type: string }
+        price: { type: number, format: double }
+        isActive: { type: boolean }

@@ -1,0 +1,69 @@
+openapi: 3.0.3
+info:
+  title: Identity API
+  version: "1.0"
+  description: Registration, login and JWT issuance for the Online Store Platform.
+servers:
+  - url: /auth/v1
+paths:
+  /register:
+    post:
+      summary: Register a new customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterRequest' }
+      responses:
+        '200': { description: Registered, content: { application/json: { schema: { $ref: '#/components/schemas/AuthResponse' } } } }
+        '400': { description: Validation error, content: { application/problem+json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } } }
+        '409': { description: Username taken, content: { application/problem+json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } } }
+  /login:
+    post:
+      summary: Log in and receive a JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200': { description: Authenticated, content: { application/json: { schema: { $ref: '#/components/schemas/AuthResponse' } } } }
+        '401': { description: Invalid credentials, content: { application/problem+json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } } }
+  /me:
+    get:
+      summary: Current token holder
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200': { description: OK }
+        '401': { description: Unauthorized }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string }
+        password: { type: string, minLength: 6 }
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string }
+        password: { type: string }
+    AuthResponse:
+      type: object
+      properties:
+        accessToken: { type: string }
+        tokenType: { type: string, example: Bearer }
+        expiresInMinutes: { type: integer }
+        username: { type: string }
+        role: { type: string, enum: [Customer, Admin] }
+    ProblemDetails:
+      type: object
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }

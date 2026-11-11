@@ -1,6 +1,8 @@
-@Payment.API_HostAddress = http://localhost:5096
+@host = http://localhost:5005
+@token = PASTE_JWT
 
-GET {{Payment.API_HostAddress}}/weatherforecast/
-Accept: application/json
+POST {{host}}/payment/v1/simulate-failure
+Authorization: Bearer {{token}}
+Content-Type: application/json
 
-###
+{ "enabled": true }

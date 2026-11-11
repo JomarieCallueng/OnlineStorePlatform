@@ -1,0 +1,12 @@
+@host = http://localhost:5001
+
+POST {{host}}/auth/v1/register
+Content-Type: application/json
+
+{ "username": "alice", "password": "Passw0rd!" }
+
+###
+POST {{host}}/auth/v1/login
+Content-Type: application/json
+
+{ "username": "admin", "password": "Admin123!" }

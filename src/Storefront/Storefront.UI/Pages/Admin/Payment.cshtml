@@ -1,0 +1,23 @@
+@page
+@model Storefront.UI.Pages.Admin.PaymentModel
+@{ ViewData["Title"] = "Admin · Payment Switch"; }
+
+<h1>Payment failure switch <small class="text-muted">(admin)</small></h1>
+@if (!string.IsNullOrEmpty(Model.Message)) { <div class="alert alert-info">@Model.Message</div> }
+@if (!string.IsNullOrEmpty(Model.Error)) { <div class="alert alert-danger">@Model.Error</div> }
+
+<p>
+    This switch forces the Payment service to decline every charge, which drives the saga down its
+    compensation path (release reserved stock, request refund, mark the order <em>Cancelled</em>).
+    It takes effect immediately &mdash; no restart needed.
+</p>
+
+<p>Current state:
+    @if (Model.FailPayments) { <span class="badge bg-danger fs-6">Failures ON</span> }
+    else { <span class="badge bg-success fs-6">Normal (charges succeed)</span> }
+</p>
+
+<form method="post" class="d-flex gap-2">
+    <button name="enabled" value="true" class="btn btn-danger">Turn failures ON</button>
+    <button name="enabled" value="false" class="btn btn-success">Turn failures OFF</button>
+</form>

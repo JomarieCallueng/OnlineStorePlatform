@@ -1,0 +1,29 @@
+@page
+@model Storefront.UI.Pages.Admin.InventoryModel
+@{ ViewData["Title"] = "Admin · Inventory"; }
+
+<h1>Inventory <small class="text-muted">(admin)</small></h1>
+@if (!string.IsNullOrEmpty(Model.Message)) { <div class="alert alert-success">@Model.Message</div> }
+@if (!string.IsNullOrEmpty(Model.Error)) { <div class="alert alert-danger">@Model.Error</div> }
+
+<table class="table table-striped align-middle">
+    <thead><tr><th>Product</th><th>On hand</th><th>Reserved</th><th>Available</th><th>Set on-hand</th></tr></thead>
+    <tbody>
+    @foreach (var s in Model.Stock)
+    {
+        <tr>
+            <td>@Model.NameFor(s.ProductId)</td>
+            <td>@s.QuantityOnHand</td>
+            <td>@s.Reserved</td>
+            <td><strong>@s.Available</strong></td>
+            <td>
+                <form method="post" asp-page-handler="Adjust" class="d-flex gap-2">
+                    <input type="hidden" name="productId" value="@s.ProductId" />
+                    <input name="quantityOnHand" type="number" min="0" value="@s.QuantityOnHand" class="form-control form-control-sm" style="width:110px" />
+                    <button class="btn btn-sm btn-outline-primary">Save</button>
+                </form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

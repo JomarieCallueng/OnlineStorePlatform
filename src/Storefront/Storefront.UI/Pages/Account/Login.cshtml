@@ -1,0 +1,21 @@
+@page
+@model Storefront.UI.Pages.Account.LoginModel
+@{ ViewData["Title"] = "Login"; }
+
+<h1>Sign in</h1>
+@if (!string.IsNullOrEmpty(Model.Error)) { <div class="alert alert-danger">@Model.Error</div> }
+
+<form method="post" style="max-width:420px">
+    <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+    <div class="mb-3">
+        <label class="form-label">Username</label>
+        <input asp-for="Username" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input asp-for="Password" type="password" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Sign in</button>
+    <a asp-page="/Account/Register" class="btn btn-link">Create an account</a>
+</form>
+<p class="text-muted mt-3"><small>Seeded accounts: <code>admin / Admin123!</code> and <code>customer / Customer123!</code></small></p>

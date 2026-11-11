@@ -1,10 +1,40 @@
-﻿@page
+@page
 @model IndexModel
-@{
-    ViewData["Title"] = "Home page";
+@{ ViewData["Title"] = "Catalog"; }
+
+<h1 class="mb-3">Catalog</h1>
+
+@if (!string.IsNullOrEmpty(Model.Error))
+{
+    <div class="alert alert-danger">@Model.Error</div>
+}
+@if (!Context.Session.IsLoggedIn())
+{
+    <div class="alert alert-info">Browsing is open to everyone. <a asp-page="/Account/Login">Sign in</a> to place an order.</div>
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="row">
+    @foreach (var p in Model.Products)
+    {
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">@p.Name</h5>
+                    <p class="card-text fs-5">@p.Price.ToString("C")</p>
+                    @if (Context.Session.IsLoggedIn())
+                    {
+                        <form method="post" asp-page-handler="Order" class="d-flex gap-2 align-items-center">
+                            <input type="hidden" name="productId" value="@p.Id" />
+                            <input type="number" name="quantity" value="1" min="1" class="form-control" style="width:90px" />
+                            <button type="submit" class="btn btn-primary">Order</button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    }
 </div>
+@if (!Model.Products.Any() && string.IsNullOrEmpty(Model.Error))
+{
+    <p class="text-muted">No products available.</p>
+}

@@ -1,6 +1,5 @@
-@Inventory.API_HostAddress = http://localhost:5248
+@host = http://localhost:5003
+@token = PASTE_ADMIN_JWT
 
-GET {{Inventory.API_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
+GET {{host}}/inventory/v1/stock
+Authorization: Bearer {{token}}

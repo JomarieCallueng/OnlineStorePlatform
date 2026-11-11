@@ -1,0 +1,37 @@
+@page
+@model Storefront.UI.Pages.Admin.ProductsModel
+@{ ViewData["Title"] = "Admin · Products"; }
+
+<h1>Products <small class="text-muted">(admin)</small></h1>
+@if (!string.IsNullOrEmpty(Model.Message)) { <div class="alert alert-success">@Model.Message</div> }
+@if (!string.IsNullOrEmpty(Model.Error)) { <div class="alert alert-danger">@Model.Error</div> }
+
+<div class="card mb-4">
+    <div class="card-header">Add a product</div>
+    <div class="card-body">
+        <form method="post" asp-page-handler="Create" class="row g-2 align-items-end">
+            <div class="col-md-5"><label class="form-label">Name</label><input asp-for="Name" class="form-control" required /></div>
+            <div class="col-md-3"><label class="form-label">Price</label><input asp-for="Price" type="number" step="0.01" min="0.01" class="form-control" required /></div>
+            <div class="col-md-2 form-check mt-4"><input asp-for="IsActive" class="form-check-input" /><label class="form-check-label">Active</label></div>
+            <div class="col-md-2"><button class="btn btn-primary w-100">Add</button></div>
+        </form>
+    </div>
+</div>
+
+<table class="table table-striped align-middle">
+    <thead><tr><th>Name</th><th>Price</th><th>Active</th><th>Save</th></tr></thead>
+    <tbody>
+    @foreach (var p in Model.Products)
+    {
+        <tr>
+            <form method="post" asp-page-handler="Update">
+                <input type="hidden" name="id" value="@p.Id" />
+                <td><input name="name" value="@p.Name" class="form-control form-control-sm" /></td>
+                <td><input name="price" value="@p.Price" type="number" step="0.01" class="form-control form-control-sm" style="width:120px" /></td>
+                <td><input name="isActive" value="true" type="checkbox" @(p.IsActive ? "checked" : "") class="form-check-input" /></td>
+                <td><button class="btn btn-sm btn-outline-primary">Save</button></td>
+            </form>
+        </tr>
+    }
+    </tbody>
+</table>

@@ -1,0 +1,139 @@
+# One command brings up the whole system:  docker compose up --build
+# Public entry points on the host:
+#   Storefront UI      -> http://localhost:5080
+#   API Gateway        -> http://localhost:8080
+#   RabbitMQ mgmt UI   -> http://localhost:15672  (guest/guest)
+#   Per-service Swagger-> http://localhost:5001..5005/swagger
+#   SQL Server         -> localhost:1433 (sa / ${SA_PASSWORD})
+name: online-store-platform
+
+x-jwt: &jwt-key ${JWT_KEY:-store-dev-signing-key-please-override-in-production-0123456789}
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${SA_PASSWORD:-Your_Strong_Pass123}
+      MSSQL_PID: Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+    networks: [ store-net ]
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 40s
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks: [ store-net ]
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  identity:
+    build: { context: ., dockerfile: src/Services/Identity.API/Dockerfile }
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Default: "Server=sqlserver,1433;Database=IdentityDb;User Id=sa;Password=${SA_PASSWORD:-Your_Strong_Pass123};TrustServerCertificate=True;Encrypt=False"
+      Jwt__Key: *jwt-key
+    ports: [ "5001:8080" ]
+    depends_on:
+      sqlserver: { condition: service_healthy }
+    networks: [ store-net ]
+
+  catalog:
+    build: { context: ., dockerfile: src/Services/Catalog.API/Dockerfile }
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Default: "Server=sqlserver,1433;Database=CatalogDb;User Id=sa;Password=${SA_PASSWORD:-Your_Strong_Pass123};TrustServerCertificate=True;Encrypt=False"
+      Jwt__Key: *jwt-key
+    ports: [ "5002:8080" ]
+    depends_on:
+      sqlserver: { condition: service_healthy }
+    networks: [ store-net ]
+
+  inventory:
+    build: { context: ., dockerfile: src/Services/Inventory.API/Dockerfile }
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Default: "Server=sqlserver,1433;Database=InventoryDb;User Id=sa;Password=${SA_PASSWORD:-Your_Strong_Pass123};TrustServerCertificate=True;Encrypt=False"
+      RabbitMq__Host: rabbitmq
+      Jwt__Key: *jwt-key
+    ports: [ "5003:8080" ]
+    depends_on:
+      sqlserver: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    networks: [ store-net ]
+
+  order:
+    build: { context: ., dockerfile: src/Services/Order.API/Dockerfile }
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Default: "Server=sqlserver,1433;Database=OrderDb;User Id=sa;Password=${SA_PASSWORD:-Your_Strong_Pass123};TrustServerCertificate=True;Encrypt=False"
+      RabbitMq__Host: rabbitmq
+      Services__CatalogUrl: "http://catalog:8080"
+      Jwt__Key: *jwt-key
+    ports: [ "5004:8080" ]
+    depends_on:
+      sqlserver: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+      catalog: { condition: service_healthy }
+    networks: [ store-net ]
+
+  payment:
+    build: { context: ., dockerfile: src/Services/Payment.API/Dockerfile }
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Default: "Server=sqlserver,1433;Database=PaymentDb;User Id=sa;Password=${SA_PASSWORD:-Your_Strong_Pass123};TrustServerCertificate=True;Encrypt=False"
+      RabbitMq__Host: rabbitmq
+      Jwt__Key: *jwt-key
+    ports: [ "5005:8080" ]
+    depends_on:
+      sqlserver: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    networks: [ store-net ]
+
+  gateway:
+    build: { context: ., dockerfile: src/Gateway/ApiGateway/Dockerfile }
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      Jwt__Key: *jwt-key
+    ports: [ "8080:8080" ]
+    depends_on:
+      identity: { condition: service_healthy }
+      catalog: { condition: service_healthy }
+      inventory: { condition: service_healthy }
+      order: { condition: service_healthy }
+      payment: { condition: service_healthy }
+    networks: [ store-net ]
+
+  storefront:
+    build: { context: ., dockerfile: src/Storefront/Storefront.UI/Dockerfile }
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      Gateway__BaseUrl: "http://gateway:8080"
+    ports: [ "5080:8080" ]
+    depends_on:
+      gateway: { condition: service_healthy }
+    networks: [ store-net ]
+
+networks:
+  store-net:
+    driver: bridge
+
+volumes:
+  mssql-data:

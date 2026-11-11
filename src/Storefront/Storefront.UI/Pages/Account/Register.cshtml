@@ -1,0 +1,19 @@
+@page
+@model Storefront.UI.Pages.Account.RegisterModel
+@{ ViewData["Title"] = "Register"; }
+
+<h1>Create an account</h1>
+@if (!string.IsNullOrEmpty(Model.Error)) { <div class="alert alert-danger">@Model.Error</div> }
+
+<form method="post" style="max-width:420px">
+    <div class="mb-3">
+        <label class="form-label">Username</label>
+        <input asp-for="Username" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Password <small class="text-muted">(min 6 characters)</small></label>
+        <input asp-for="Password" type="password" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Register</button>
+    <a asp-page="/Account/Login" class="btn btn-link">I already have an account</a>
+</form>

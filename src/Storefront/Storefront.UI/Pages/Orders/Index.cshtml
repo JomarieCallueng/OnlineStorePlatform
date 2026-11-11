@@ -1,0 +1,40 @@
+@page "/Orders"
+@model Storefront.UI.Pages.Orders.IndexModel
+@{ ViewData["Title"] = "My Orders"; }
+
+<h1>My Orders</h1>
+@if (!string.IsNullOrEmpty(Model.Error)) { <div class="alert alert-danger">@Model.Error</div> }
+
+@if (!Model.Orders.Any())
+{
+    <p class="text-muted">No orders yet. <a asp-page="/Index">Browse the catalog</a>.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead><tr><th>Order</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var o in Model.Orders)
+        {
+            <tr>
+                <td><code>@o.Id.ToString().Substring(0, 8)</code></td>
+                <td>@o.CreatedAt.ToLocalTime().ToString("g")</td>
+                <td>@o.Lines.Sum(l => l.Quantity)</td>
+                <td>@o.Total.ToString("C")</td>
+                <td><span class="badge bg-@StatusColor(o.Status)">@o.Status</span></td>
+                <td><a asp-page="/Orders/Details" asp-route-id="@o.Id" class="btn btn-sm btn-outline-primary">View</a></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+@functions {
+    static string StatusColor(string s) => s switch
+    {
+        "Confirmed" => "success",
+        "Cancelled" => "danger",
+        "Compensating" => "warning",
+        "StockReserved" => "info",
+        _ => "secondary"
+    };
+}
